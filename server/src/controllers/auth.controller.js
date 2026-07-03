@@ -3,6 +3,7 @@ import {
   loginUser,
   logoutUser,
   refreshAccessToken,
+  googleLogin
 } from "../services/auth.service.js";
 
 import asyncHandler from "../utils/asyncHandler.js";
@@ -14,6 +15,27 @@ const cookieOptions = {
   sameSite: "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
+
+export const googleAuth = asyncHandler(async (req, res) => {
+  const { idToken } = req.body;
+
+  const { user, accessToken, refreshToken } =
+    await googleLogin(idToken);
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user,
+        },
+        "Google login successful."
+      )
+    );
+});
 
 export const register = asyncHandler(async (req, res) => {
   const { fullName, email, password } = req.body;

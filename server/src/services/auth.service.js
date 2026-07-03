@@ -1,7 +1,84 @@
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import slugify from "slugify";
 import jwt from "jsonwebtoken";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleLogin = async (idToken) => {
+  if (!idToken) {
+    throw new ApiError(400, "Google ID token is required");
+  }
+
+  // Verify Google ID Token
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+
+  const {
+    sub: googleId,
+    email,
+    name,
+    picture,
+    email_verified,
+  } = payload;
+
+  if (!email_verified) {
+    throw new ApiError(401, "Google email is not verified");
+  }
+
+  // Find user by Google ID or Email
+  let user = await User.findOne({
+    $or: [{ googleId }, { email }],
+  }).select("+refreshToken");
+
+  // Create a new user if one doesn't exist
+  if (!user) {
+    const username = await generateUsername(name);
+
+    user = await User.create({
+      fullName: name,
+      username,
+      email,
+      profilePicture: picture,
+      authProvider: "google",
+      googleId,
+      isVerified: true,
+    });
+  }
+
+  // Link an existing email account with Google
+  else if (!user.googleId) {
+    user.googleId = googleId;
+    user.authProvider = "google";
+    user.isVerified = true;
+
+    // Save Google profile picture only if the user doesn't already have one
+    if (!user.profilePicture) {
+      user.profilePicture = picture;
+    }
+
+    await user.save({
+      validateBeforeSave: false,
+    });
+  }
+
+  // Generate our JWT tokens
+  const { accessToken, refreshToken } = createTokenPair(user);
+
+  // Store the latest refresh token
+  await saveRefreshToken(user, refreshToken);
+
+  return {
+    user: user.toJSON(),
+    accessToken,
+    refreshToken,
+  };
+};
 
 const generateUsername = async (fullName) => {
   const baseUsername = slugify(fullName, {
@@ -148,4 +225,5 @@ export {
   refreshAccessToken,
   createTokenPair,
   saveRefreshToken,
+  googleLogin
 };

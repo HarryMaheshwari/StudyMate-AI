@@ -6,6 +6,7 @@ import {
   logout,
   refreshToken,
   getCurrentUser,
+  googleAuth
 } from "../controllers/auth.controller.js";
 import verifyJWT from "../middleware/auth.middleware.js";
 
@@ -14,6 +15,8 @@ const router = Router();
 router.post("/register", register);
 
 router.post("/login", login);
+
+router.post("/google", googleAuth);
 
 router.post("/refresh-token", refreshToken);
 

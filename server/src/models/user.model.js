@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema(
       index: true,
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
+    googleId: {
+  type: String,
+  default: null,
+  index: true,
+},
 
     password: {
       type: String,
