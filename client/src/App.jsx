@@ -9,6 +9,8 @@ import Notes from "./pages/Notes";
 import Quiz from "./pages/Quiz";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Documents from "./pages/Documents";
+import DocumentDetails from "./pages/DocumentDetails";
 
 export default function App() {
   return (
@@ -35,7 +37,7 @@ export default function App() {
       />
 
       <Route
-        path="/notes"
+        path="/documents/:id/notes"
         element={
           <ProtectedRoute>
             <Notes />
@@ -48,6 +50,24 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Quiz />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/documents"
+        element={
+          <ProtectedRoute>
+            <Documents />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/documents/:id"
+        element={
+          <ProtectedRoute>
+            <DocumentDetails />
           </ProtectedRoute>
         }
       />

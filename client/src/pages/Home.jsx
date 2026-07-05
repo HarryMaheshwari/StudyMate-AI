@@ -5,7 +5,7 @@ import HowItWorks from "../components/HowItWorks";
 import Testimonials from "../components/Testimonials";
 import FAQ from "../components/FAQ";
 import Footer from "../components/Footer";
-import DashboardPreview from "../components/DashboardPreview";
+// import DashboardPreview from "../components/DashboardPreview";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
       <Hero />
       <Features />
       <HowItWorks />
-      <DashboardPreview />
+      {/* <DashboardPreview /> */}
       <Testimonials />
       <FAQ />
       <Footer />

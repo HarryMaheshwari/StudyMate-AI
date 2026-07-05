@@ -5,6 +5,9 @@ import helmet from "helmet";
 import morgan from "morgan";
 import authRoutes from "../src/routes/auth.routes.js"
 import errorHandler from "./middleware/error.middleware.js";
+import documentRoutes from "./routes/document.routes.js";
+import noteRoutes from "./routes/note.routes.js";
+
 
 const app = express();
 
@@ -35,6 +38,8 @@ app.get("/", (req, res) => {
 
 //routes
 app.use("/auth", authRoutes);
+app.use("/documents", documentRoutes);
+app.use("/notes", noteRoutes);
 
 //global error handler
 app.use(errorHandler);
