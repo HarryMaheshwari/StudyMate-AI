@@ -4,6 +4,10 @@ import useDocument from "../hooks/useDocument";
 import useGenerateNotes from "../hooks/useGenerateNotes";
 import useNotes from "../hooks/useNotes";
 import { useNavigate } from "react-router-dom";
+import useFlashcards from "../hooks/useFlashcards";
+import useGenerateFlashcards from "../hooks/useGenerateFlashcards";
+import useQuiz from "../hooks/useQuiz";
+import useGenerateQuiz from "../hooks/useGenerateQuiz";
 
 
 
@@ -18,6 +22,20 @@ export default function DocumentDetails() {
 } = useNotes(id);
   const generateNotesMutation = useGenerateNotes();
 
+  const {
+  isSuccess: flashcardsExist,
+} = useFlashcards(id);
+
+const generateFlashcardsMutation =
+  useGenerateFlashcards();
+
+  const {
+  isSuccess: quizExists,
+} = useQuiz(id);
+
+const generateQuizMutation =
+  useGenerateQuiz();
+ 
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -98,13 +116,64 @@ export default function DocumentDetails() {
   </button>
 )}
 
-  <button className="rounded-2xl bg-violet-600 p-5 font-semibold hover:bg-violet-500">
-    Generate Flashcards
+  {flashcardsExist ? (
+  <button
+    onClick={() =>
+      navigate(
+        `/documents/${id}/flashcards`
+      )
+    }
+    className="rounded-2xl bg-emerald-600 p-5 font-semibold hover:bg-emerald-500"
+  >
+    View Flashcards
   </button>
+) : (
+  <button
+    onClick={() =>
+      generateFlashcardsMutation.mutate(id)
+    }
+    disabled={
+      generateFlashcardsMutation.isPending
+    }
+    className="rounded-2xl bg-violet-600 p-5 font-semibold hover:bg-violet-500"
+  >
+    {generateFlashcardsMutation.isPending
+      ? "Generating..."
+      : "Generate Flashcards"}
+  </button>
+)}
 
-  <button className="rounded-2xl bg-emerald-600 p-5 font-semibold hover:bg-emerald-500">
-    Generate Quiz
+  {quizExists ? (
+  <button
+    onClick={() =>
+      navigate(`/documents/${id}/quiz`)
+    }
+    className="rounded-2xl bg-emerald-600 p-5 font-semibold hover:bg-emerald-500"
+  >
+    View Quiz
   </button>
+) : (
+  <button
+    onClick={() =>
+      generateQuizMutation.mutate(id)
+    }
+    disabled={generateQuizMutation.isPending}
+    className="rounded-2xl bg-blue-600 p-5 font-semibold hover:bg-blue-500"
+  >
+    {generateQuizMutation.isPending
+      ? "Generating..."
+      : "Generate Quiz"}
+  </button>
+)}
+
+<button
+  onClick={() =>
+    navigate(`/documents/${id}/chat`)
+  }
+  className="rounded-2xl bg-cyan-600 p-5 font-semibold hover:bg-cyan-500"
+>
+  Chat with PDF
+</button>
 
 </div>
 

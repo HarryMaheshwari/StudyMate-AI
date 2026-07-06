@@ -7,6 +7,9 @@ import authRoutes from "../src/routes/auth.routes.js"
 import errorHandler from "./middleware/error.middleware.js";
 import documentRoutes from "./routes/document.routes.js";
 import noteRoutes from "./routes/note.routes.js";
+import flashcardRoutes from "./routes/flashcard.routes.js";
+import quizRoutes from "./routes/quiz.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 
 
 const app = express();
@@ -40,6 +43,10 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/documents", documentRoutes);
 app.use("/notes", noteRoutes);
+app.use("/flashcards", flashcardRoutes
+);
+app.use("/quiz", quizRoutes);
+app.use("/chat", chatRoutes)
 
 //global error handler
 app.use(errorHandler);

@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Documents from "./pages/Documents";
 import DocumentDetails from "./pages/DocumentDetails";
+import Flashcards from "./pages/Flashcards";
+import Chat from "./pages/Chat";
 
 export default function App() {
   return (
@@ -71,6 +73,33 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/documents/:id/flashcards"
+        element={
+          <ProtectedRoute>
+            <Flashcards />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/documents/:id/quiz"
+        element={
+          <ProtectedRoute>
+            <Quiz />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+  path="/documents/:id/chat"
+  element={
+    <ProtectedRoute>
+      <Chat />
+    </ProtectedRoute>
+  }
+/>
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
