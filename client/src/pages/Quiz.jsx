@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   ArrowLeft, Loader2, CheckCircle, XCircle, 
   Award, Sparkles, AlertCircle, Send, 
-  ChevronDown, Clock, FileText, Trophy, Target
+  ChevronDown, Clock, FileText, Trophy, Target,
+  Zap, Brain, BarChart3, ListChecks, X
 } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import useQuiz from "../hooks/useQuiz";
@@ -16,6 +17,8 @@ export default function Quiz() {
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [showExplanations, setShowExplanations] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const resultsRef = useRef(null);
 
   const questions = data?.questions || [];
@@ -67,14 +70,23 @@ export default function Quiz() {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmitClick = () => {
     const answered = Object.keys(selectedAnswers).length;
-    if (answered < totalQuestions) {
-      if (!confirm(`You've answered ${answered} out of ${totalQuestions} questions. Submit anyway?`)) {
-        return;
-      }
+    if (answered === 0) {
+      setShowSubmitModal(true);
+      return;
     }
+    if (answered < totalQuestions) {
+      setShowSubmitModal(true);
+      return;
+    }
+    confirmSubmit();
+  };
+
+  const confirmSubmit = () => {
+    setShowSubmitModal(false);
     setSubmitted(true);
+    setShowExplanations(true);
   };
 
   const calculateScore = () => {
@@ -95,7 +107,7 @@ export default function Quiz() {
   if (submitted) {
     return (
       <DashboardLayout>
-        <div className="w-full min-h-screen bg-zinc-900">
+        <div className="w-full min-h-screen bg-zinc-950">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             {/* Back Button */}
             <button 
@@ -106,7 +118,7 @@ export default function Quiz() {
               <span>Back to Document</span>
             </button>
 
-            {/* Results Header - Large & Prominent */}
+            {/* Results Header */}
             <motion.div 
               ref={resultsRef}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -171,6 +183,7 @@ export default function Quiz() {
                   onClick={() => {
                     setSelectedAnswers({});
                     setSubmitted(false);
+                    setShowExplanations(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="px-8 py-3 bg-[#C9A44C] text-[#09090B] rounded-xl font-medium hover:bg-[#D4B45C] transition-colors w-full sm:w-auto"
@@ -188,10 +201,15 @@ export default function Quiz() {
 
             {/* Review Answers */}
             <div className="space-y-4">
-              <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <FileText size={16} />
-                Review Your Answers
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                  <ListChecks size={16} />
+                  Review Your Answers
+                </h2>
+                <span className="text-xs text-zinc-500">
+                  {score} correct • {totalQuestions - score} incorrect
+                </span>
+              </div>
               {questions.map((q, qIndex) => {
                 const selected = selectedAnswers[qIndex];
                 const isCorrect = selected === q.correctAnswer;
@@ -242,7 +260,7 @@ export default function Quiz() {
                               {isAnswered ? q.options[selected] : 'Not answered'}
                             </span>
                           </div>
-                          {!isCorrect && (
+                          {!isCorrect && isAnswered && (
                             <div className="flex items-center gap-2">
                               <span className="text-zinc-500 text-xs">Correct answer:</span>
                               <span className="font-medium text-emerald-400">
@@ -250,7 +268,7 @@ export default function Quiz() {
                               </span>
                             </div>
                           )}
-                          {q.explanation && (
+                          {q.explanation && showExplanations && (
                             <div className="mt-3 p-3 bg-zinc-800/30 rounded-lg border border-zinc-700/50">
                               <p className="text-xs text-zinc-400">
                                 <span className="font-medium text-zinc-300">💡 Explanation:</span> {q.explanation}
@@ -270,62 +288,55 @@ export default function Quiz() {
     );
   }
 
-  // Active Quiz - Full page
+  // Active Quiz
   return (
     <DashboardLayout>
-      <div className="w-full min-h-screen bg-zinc-900">
+      <div className="w-full min-h-screen bg-zinc-950 rounded-none md:rounded-2xl lg:rounded-3xl overflow-hidden">
         {/* Top Navigation */}
         <div className="sticky top-0 z-20 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between h-14">
               <button 
                 onClick={() => navigate(`/documents/${id}`)} 
                 className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm group"
               >
-                <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
-                <span className="hidden sm:inline">Back to Document</span>
-                <span className="sm:hidden">Back</span>
+                <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+                <span>Back</span>
               </button>
               <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-[#C9A44C]" />
-                <h1 className="text-sm sm:text-base font-semibold text-white truncate max-w-[120px] sm:max-w-xs">
-                  {data?.title || "Quiz"}
-                </h1>
+                <span className="text-sm font-medium text-white">Quiz</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-zinc-500">
-                <span className="hidden sm:inline">{totalQuestions} questions</span>
-                <span className="sm:hidden">{totalQuestions}</span>
-              </div>
+              <span className="text-xs text-zinc-500">
+                {answeredCount}/{totalQuestions}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Main Content - Full width with padding */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Progress Bar */}
+        <div className="w-full h-0.5 bg-zinc-800">
+          <motion.div 
+            className="h-full bg-[#C9A44C]"
+            initial={{ width: 0 }}
+            animate={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+
+        {/* Main Content */}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
           {/* Progress Overview */}
-          <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 sm:p-6 mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-zinc-400">Progress</span>
-              <span className="text-sm font-medium text-white">
-                {answeredCount} / {totalQuestions} answered
-              </span>
-            </div>
-            <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-[#C9A44C] rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-zinc-500">
-              <span>{isComplete ? '✅ All answered!' : `${totalQuestions - answeredCount} remaining`}</span>
-              <span>{Math.round((answeredCount / totalQuestions) * 100)}%</span>
-            </div>
+          <div className="flex items-center justify-between mb-6 text-sm">
+            <span className="text-zinc-400">
+              <span className="text-white font-medium">{answeredCount}</span> of {totalQuestions} answered
+            </span>
+            <span className="text-zinc-500">
+              {Math.round((answeredCount / totalQuestions) * 100)}%
+            </span>
           </div>
 
           {/* Questions List */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {questions.map((q, qIndex) => {
               const selected = selectedAnswers[qIndex];
               const isAnswered = selected !== undefined;
@@ -333,33 +344,33 @@ export default function Quiz() {
               return (
                 <motion.div
                   key={qIndex}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: qIndex * 0.05 }}
-                  className={`bg-[#121212] border rounded-2xl p-5 sm:p-7 transition-all duration-200
+                  className={`bg-[#121212] border rounded-xl p-4 sm:p-5 transition-all duration-200
                     ${isAnswered 
                       ? 'border-[#C9A44C]/30 bg-[#C9A44C]/5' 
                       : 'border-[#1f1f1f]'
                     }
                   `}
                 >
-                  {/* Question Header */}
-                  <div className="flex items-start gap-4 mb-5">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-xl bg-[#C9A44C]/10 text-[#C9A44C] flex items-center justify-center text-sm font-bold">
+                  {/* Question */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold
+                      ${isAnswered 
+                        ? 'bg-[#C9A44C] text-[#09090B]' 
+                        : 'bg-zinc-800 text-zinc-500'
+                      }
+                    `}>
                       {qIndex + 1}
                     </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base sm:text-lg font-semibold text-white leading-relaxed">
-                        {q.question}
-                      </h3>
-                    </div>
-                    {isAnswered && (
-                      <CheckCircle size={18} className="text-[#C9A44C] flex-shrink-0 mt-1" />
-                    )}
+                    <h3 className="text-sm font-medium text-white leading-relaxed">
+                      {q.question}
+                    </h3>
                   </div>
 
                   {/* Options */}
-                  <div className="space-y-3 ml-12">
+                  <div className="space-y-2 ml-9">
                     {q.options.map((option, oIndex) => {
                       const isSelected = selected === oIndex;
                       
@@ -368,14 +379,14 @@ export default function Quiz() {
                           key={oIndex}
                           onClick={() => handleSelect(qIndex, oIndex)}
                           disabled={submitted}
-                          className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 text-left
+                          className={`w-full flex items-center gap-2.5 p-2.5 rounded-lg border transition-all duration-200 text-left
                             ${isSelected 
                               ? 'border-[#C9A44C] bg-[#C9A44C]/10' 
                               : 'border-[#1f1f1f] hover:border-zinc-600 hover:bg-zinc-800/30'
                             }
                           `}
                         >
-                          <span className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium transition-colors
+                          <span className={`flex-shrink-0 w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-medium
                             ${isSelected 
                               ? 'bg-[#C9A44C] text-[#09090B]' 
                               : 'bg-zinc-800 text-zinc-400'
@@ -386,9 +397,6 @@ export default function Quiz() {
                           <span className={`text-sm ${isSelected ? 'text-white' : 'text-zinc-300'}`}>
                             {option}
                           </span>
-                          {isSelected && (
-                            <CheckCircle size={16} className="ml-auto text-[#C9A44C] flex-shrink-0" />
-                          )}
                         </button>
                       );
                     })}
@@ -398,32 +406,108 @@ export default function Quiz() {
             })}
           </div>
 
-          {/* Submit Button - Sticky at bottom */}
-          <div className="sticky bottom-0 pt-6 pb-20 mt-8 bg-gradient-to-t from-zinc-900 via-zinc-900/80 to-transparent">
+          {/* Submit Button */}
+          <div className="mt-6">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={handleSubmit}
-              className={`w-full py-4 rounded-2xl font-semibold text-base transition-all duration-200 shadow-lg
-                ${isComplete 
-                  ? 'bg-[#C9A44C] text-[#09090B] hover:bg-[#D4B45C] shadow-[#C9A44C]/20' 
+              onClick={handleSubmitClick}
+              className={`w-full py-3 rounded-xl font-medium text-sm transition-all duration-200
+                ${answeredCount > 0
+                  ? 'bg-[#C9A44C] text-[#09090B] hover:bg-[#D4B45C] shadow-lg shadow-[#C9A44C]/20' 
                   : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
                 }
               `}
             >
-              <div className="flex items-center justify-center gap-3">
-                <Send size={20} />
-                <span>{isComplete ? 'Submit Quiz' : `Submit (${answeredCount}/${totalQuestions})`}</span>
+              <div className="flex items-center justify-center gap-2">
+                <Send size={16} />
+                <span>{answeredCount === totalQuestions ? 'Submit Quiz' : `Submit (${answeredCount}/${totalQuestions})`}</span>
               </div>
             </motion.button>
-            {!isComplete && (
-              <p className="text-center text-xs text-zinc-500 mt-3">
+            {!isComplete && answeredCount > 0 && (
+              <p className="text-center text-[10px] text-zinc-500 mt-2">
                 {totalQuestions - answeredCount} question{totalQuestions - answeredCount !== 1 ? 's' : ''} remaining
               </p>
             )}
           </div>
         </div>
       </div>
+
+      {/* Submit Confirmation Modal */}
+      <AnimatePresence>
+        {showSubmitModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSubmitModal(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            />
+            
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                {/* Close button */}
+                <button
+                  onClick={() => setShowSubmitModal(false)}
+                  className="absolute top-4 right-4 p-1 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+
+                {/* Icon */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center">
+                    <AlertCircle size={28} className="text-amber-400" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-white text-center mb-2">
+                  {answeredCount === 0 ? 'No answers selected!' : 'Submit quiz?'}
+                </h3>
+                
+                {/* Description */}
+                <p className="text-sm text-zinc-400 text-center mb-6">
+                  {answeredCount === 0 
+                    ? 'You haven\'t answered any questions yet. Are you sure you want to submit?'
+                    : `You've answered ${answeredCount} out of ${totalQuestions} questions. ${totalQuestions - answeredCount} question${totalQuestions - answeredCount !== 1 ? 's' : ''} remaining.`
+                  }
+                </p>
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowSubmitModal(false)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
+                  >
+                    Continue Quiz
+                  </button>
+                  <button
+                    onClick={confirmSubmit}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors
+                      ${answeredCount === 0 
+                        ? 'bg-red-500 hover:bg-red-600 text-white' 
+                        : 'bg-[#C9A44C] hover:bg-[#D4B45C] text-[#09090B]'
+                      }
+                    `}
+                  >
+                    {answeredCount === 0 ? 'Submit Anyway' : 'Submit Quiz'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }

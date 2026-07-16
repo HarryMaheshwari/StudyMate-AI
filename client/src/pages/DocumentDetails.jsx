@@ -50,9 +50,9 @@ export default function DocumentDetails() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-zinc-950 rounded-none sm:rounded-4xl">
+      <div className="min-h-screen bg-zinc-950 rounded-none md:rounded-4xl">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-t-none sm:rounded-t-4xl">
+        <div className="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-none md:rounded-t-4xl">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center gap-3 min-w-0">
               <button 

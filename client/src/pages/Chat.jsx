@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   ArrowLeft, Send, Loader2, Sparkles, 
   MessageSquare, FileText, Bot, User,
@@ -41,8 +41,9 @@ export default function Chat() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!message.trim() || sendMessageMutation.isPending) return;
-    sendMessageMutation.mutate(message);
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || sendMessageMutation.isPending) return;
+    sendMessageMutation.mutate(trimmedMessage);
     setMessage("");
   };
 
@@ -92,6 +93,7 @@ export default function Chat() {
   return (
     <DashboardLayout hideBottomNav={true}>
       <div className="w-full h-screen md:h-[calc(100vh-2.6rem)] bg-zinc-900 flex flex-col overflow-hidden md:rounded-4xl">
+        
         {/* Top Navigation */}
         <div className="flex-shrink-0 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 px-4 sm:px-6 lg:px-8 py-3">
           <div className="max-w-6xl mx-auto">
@@ -114,7 +116,7 @@ export default function Chat() {
               <div className="flex items-center gap-2 text-xs text-zinc-500">
                 <FileText size={14} />
                 <span className="hidden sm:inline">Document</span>
-                <span className="truncate max-w-[100px] sm:max-w-xs text-zinc-400">
+                <span className="truncate max-w-[80px] sm:max-w-xs text-zinc-400">
                   {data?.documentTitle || "PDF"}
                 </span>
               </div>
@@ -122,7 +124,7 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* Messages Area with Custom Scrollbar */}
+        {/* Messages Area */}
         <div 
           ref={messagesContainerRef}
           className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 scroll-smooth custom-scrollbar min-h-0"
@@ -144,7 +146,6 @@ export default function Chat() {
                   Ask anything about your document and get AI-powered answers instantly.
                 </p>
 
-                {/* Example Questions */}
                 <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
                   {[
                     { label: "📄 Summarize this document", value: "Summarize this document in a few paragraphs." },
@@ -245,7 +246,6 @@ export default function Chat() {
                                   {msg.content}
                                 </ReactMarkdown>
                               </div>
-                              {/* Copy Button */}
                               <button
                                 onClick={() => copyToClipboard(msg.content, index)}
                                 className="absolute top-1 right-1 p-1.5 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors opacity-0 group-hover:opacity-100"
@@ -282,6 +282,9 @@ export default function Chat() {
                   placeholder="Ask anything about your document..."
                   className="w-full rounded-xl sm:rounded-2xl border border-[#1f1f1f] bg-[#121212] px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base text-white placeholder:text-zinc-500 outline-none focus:border-[#C9A44C] transition-colors"
                   disabled={sendMessageMutation.isPending}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck="true"
                 />
                 {sendMessageMutation.isPending && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -303,16 +306,20 @@ export default function Chat() {
                 <span className="hidden sm:inline">Send</span>
               </button>
             </form>
-            <p className="text-center text-[10px] text-zinc-600 mt-2">
-              Press <kbd className="px-1.5 py-0.5 bg-[#121212] border border-[#1f1f1f] rounded text-[9px]">Enter</kbd> to send
-            </p>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-[10px] text-zinc-600">
+                Press <kbd className="px-1.5 py-0.5 bg-[#121212] border border-[#1f1f1f] rounded text-[9px]">Enter</kbd> to send
+              </p>
+              <p className="text-[10px] text-zinc-600">
+                {message.length > 0 && `${message.length} characters`}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Custom Scrollbar Styles */}
       <style jsx global>{`
-        /* Custom Scrollbar for WebKit browsers (Chrome, Safari, Edge) */
         .custom-scrollbar::-webkit-scrollbar {
           width: 5px;
           height: 5px;
@@ -337,18 +344,15 @@ export default function Chat() {
           background: #4d4d4d;
         }
 
-        /* For Firefox */
         .custom-scrollbar {
           scrollbar-width: thin;
           scrollbar-color: #2a2a2a transparent;
         }
 
-        /* For when scrollbar is in a container */
         .custom-scrollbar {
           scroll-behavior: smooth;
         }
 
-        /* Hide scrollbar when not hovering (optional) */
         @media (hover: hover) {
           .custom-scrollbar {
             scrollbar-width: thin;
@@ -361,7 +365,6 @@ export default function Chat() {
           }
         }
 
-        /* Always show scrollbar on touch devices */
         @media (hover: none) {
           .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #2a2a2a;
