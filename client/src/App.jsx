@@ -14,6 +14,7 @@
   import Flashcards from "./pages/Flashcards";
   import Chat from "./pages/Chat";
   import TestingDashboard from "./pages/TestingDashboard";
+import Profile from "./pages/Profile";
 
   export default function App() {
     return (
@@ -83,6 +84,8 @@
             </ProtectedRoute>
           }
         />
+
+        <Route path="/profile" element={<Profile />} />
 
         <Route
           path="/documents/:id/quiz"

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard, Upload, FileText, Brain, LogOut, 
-  Menu, X, Sparkles, BookOpen, Home, PlusCircle, User
+  LayoutDashboard, Upload, FileText, User, LogOut, 
+  Menu, X, Sparkles, BookOpen, Home, PlusCircle
 } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 import useLogout from "../../hooks/useLogout";
@@ -12,7 +12,7 @@ const MENU = [
   { icon: LayoutDashboard, label: 'Home', path: '/dashboard' },
   { icon: Upload, label: 'Upload', path: '/upload' },
   { icon: FileText, label: 'Library', path: '/documents' },
-  { icon: Brain, label: 'Quiz', path: '/quiz' },
+  { icon: User, label: 'Profile', path: '/profile' },
 ];
 
 const NavIcon = ({ icon: Icon, label, active }) => (
@@ -31,8 +31,6 @@ const NavIcon = ({ icon: Icon, label, active }) => (
 
 // Ultra-compact mobile nav icon
 const MobileNavIcon = ({ icon: Icon, active, label }) => {
-  const isHome = label === 'Home';
-  
   return (
     <motion.div
       whileTap={{ scale: 0.85 }}
@@ -40,15 +38,12 @@ const MobileNavIcon = ({ icon: Icon, active, label }) => {
         ${active ? 'text-white' : 'text-[#A1A1AA]'}`}
     >
       <div className="relative">
-       
         <Icon 
           size={20} 
           strokeWidth={active ? 2.5 : 2}
           className={`relative transition-all duration-300 ${active ? 'text-white' : ''}`}
         />
       </div>
-      
-     
     </motion.div>
   );
 };
@@ -129,7 +124,7 @@ export default function Sidebar({ hideBottomNav = false }) {
                       >
                         {n.label === 'Home' ? 'Home' : 
                          n.label === 'Upload' ? 'Upload' :
-                         n.label === 'Library' ? 'Library' : 'Quiz'}
+                         n.label === 'Library' ? 'Library' : 'Profile'}
                       </span>
                     </div>
                   )}
