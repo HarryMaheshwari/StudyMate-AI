@@ -1,96 +1,134 @@
+import { useState, useMemo } from "react";
 import { Sparkles, CheckCircle2, Circle } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 
 export default function WelcomeBanner() {
   const { data: user } = useAuth();
-  
-  const tasks = [
-    { id: 1, label: 'Upload DBMS Notes', completed: true },
-    { id: 2, label: 'Generate Quiz', completed: true },
-    { id: 3, label: 'Review Flashcards', completed: false },
-    { id: 4, label: 'Create AI Summary', completed: false },
-  ];
 
-  const completedCount = tasks.filter(t => t.completed).length;
-  const totalCount = tasks.length;
-  const progress = (completedCount / totalCount) * 100;
+  // 1. Stateful tasks so users can interactively check/uncheck them!
+  const [tasks, setTasks] = useState([
+    { id: 1, label: "Upload DBMS Notes", completed: true },
+    { id: 2, label: "Generate Quiz", completed: true },
+    { id: 3, label: "Review Flashcards", completed: false },
+    { id: 4, label: "Create AI Summary", completed: false },
+  ]);
 
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+  // 2. Toggle completion handler
+  const handleToggleTask = (id) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
   };
 
-  const userName = user?.fullName?.split(' ')[0] || 'Scholar';
+  // 3. Performance-optimized calculations
+  const { completedCount, totalCount, progress } = useMemo(() => {
+    const completed = tasks.filter((t) => t.completed).length;
+    const total = tasks.length;
+    return {
+      completedCount: completed,
+      totalCount: total,
+      progress: total > 0 ? (completed / total) * 100 : 0,
+    };
+  }, [tasks]);
+
+  // 4. Clean greeting logic
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  }, []);
+
+  const userName = user?.fullName?.split(" ")[0] || "Scholar";
 
   return (
-    <section className="relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] border border-white/10 bg-zinc-950 p-4 sm:p-8 lg:p-12 shadow-2xl">
-      {/* Background glow */}
-      <div className="absolute top-0 right-0 w-48 sm:w-96 h-48 sm:h-96 bg-[#C9A44C]/5 rounded-full blur-[120px] -mr-20 -mt-20" />
+    <section className="relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] border border-white/10 bg-zinc-950 p-6 sm:p-10 lg:p-12 shadow-2xl transition-all duration-300">
+      {/* Background Glow Ambiance */}
+      <div className="absolute -top-20 -right-20 w-72 sm:w-[500px] h-72 sm:h-[500px] bg-[#C9A44C]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-48 sm:w-[300px] h-48 sm:h-[300px] bg-zinc-800/20 rounded-full blur-[80px] pointer-events-none" />
 
-      <div className="relative z-10">
-        {/* Header - Full width on mobile */}
-        <div className="mb-6 sm:mb-8">
-          <div className="mb-3 sm:mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 sm:px-4 py-1.5 text-[10px] font-mono uppercase tracking-[0.25em] text-[#C9A44C]">
-            <Sparkles size={12} />
+      {/* Modern 2-Column Responsive Grid */}
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
+        {/* Left Column: Greeting & Intro */}
+        <div className="lg:col-span-7 flex flex-col items-start text-left">
+          <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-mono uppercase tracking-[0.25em] text-[#C9A44C] backdrop-blur-sm">
+            <Sparkles size={12} className="animate-pulse" />
             <span className="hidden sm:inline">Nexus Intelligence</span>
             <span className="sm:hidden">AI</span>
           </div>
-          
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#FDFBF7] tracking-tight leading-[1.1]">
-            {greeting()}, {userName}
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#FDFBF7] tracking-tight leading-[1.15]">
+            {greeting}, <span className="text-[#C9A44C]">{userName}</span>
           </h1>
-          
-          <p className="mt-2 sm:mt-6 text-zinc-400 text-sm sm:text-[15px] leading-relaxed max-w-md">
-            Turn your notes into summaries, flashcards, quizzes, and AI conversations—all in one place.
+
+          <p className="mt-4 text-zinc-400 text-sm sm:text-base leading-relaxed max-w-md">
+            Turn your notes into summaries, interactive flashcards, dynamic quizzes, and AI conversations—all in one smart workspace.
           </p>
         </div>
 
-        {/* Tasks Card - Full width on mobile, no extra stats */}
-        <div className="w-full">
-          <div className="bg-[#FDFBF7] text-zinc-950 rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 shadow-xl">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="font-serif text-sm font-bold">Today's Goal</h3>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 bg-zinc-100 px-2 sm:px-3 py-1 rounded-full">
-                {completedCount}/{totalCount}
+        {/* Right Column: Interactive Tasks Card */}
+        <div className="lg:col-span-5 w-full">
+          <div className="bg-[#FDFBF7] text-zinc-950 rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 shadow-2xl border border-zinc-200 transition-transform duration-300 hover:scale-[1.01]">
+            
+            {/* Goal Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="space-y-0.5">
+                <h3 className="font-serif text-base font-bold text-zinc-900">Today's Goal</h3>
+                <p className="text-xs text-zinc-500">Keep up the great momentum!</p>
+              </div>
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-600 bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200">
+                {completedCount}/{totalCount} Done
               </span>
             </div>
 
-            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+            {/* Task Checklist Items */}
+            <div className="space-y-2.5 mb-6">
               {tasks.map((task) => (
-                <div 
+                <button
                   key={task.id}
-                  className={`flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-medium ${
-                    task.completed ? 'text-zinc-900' : 'text-zinc-500'
+                  onClick={() => handleToggleTask(task.id)}
+                  className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left text-xs sm:text-sm font-medium transition-all duration-200 border outline-none focus-visible:ring-2 focus-visible:ring-[#C9A44C]/50 ${
+                    task.completed
+                      ? "bg-zinc-50 border-zinc-100 text-zinc-400"
+                      : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50/50"
                   }`}
                 >
-                  {task.completed ? (
-                    <CheckCircle2 size={14} className="text-[#C9A44C] flex-shrink-0 sm:w-4 sm:h-4" />
-                  ) : (
-                    <Circle size={14} className="text-zinc-300 flex-shrink-0 sm:w-4 sm:h-4" />
-                  )}
-                  <span className={task.completed ? 'line-through decoration-[#C9A44C]' : ''}>
+                  <div className="flex-shrink-0 transition-transform duration-150 active:scale-95">
+                    {task.completed ? (
+                      <CheckCircle2 size={16} className="text-[#C9A44C] fill-[#C9A44C]/10" />
+                    ) : (
+                      <Circle size={16} className="text-zinc-300 hover:text-zinc-400" />
+                    )}
+                  </div>
+                  <span className={`transition-all duration-200 select-none ${
+                    task.completed ? "line-through decoration-[#C9A44C]/50 text-zinc-400" : ""
+                  }`}>
                     {task.label}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
 
-            <div>
-              <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-1 sm:mb-2">
+            {/* Progress Meter */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
                 <span>Progress</span>
-                <span>{Math.round(progress)}%</span>
+                <span className="text-zinc-900">{Math.round(progress)}%</span>
               </div>
-              <div className="h-1.5 sm:h-2 w-full bg-zinc-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-[#C9A44C] transition-all duration-1000"
+              <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden border border-zinc-200">
+                <div
+                  className="h-full bg-[#C9A44C] rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(201,164,76,0.3)]"
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
+
           </div>
         </div>
+
       </div>
     </section>
   );
