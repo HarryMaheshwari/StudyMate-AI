@@ -10,6 +10,7 @@ import noteRoutes from "./routes/note.routes.js";
 import flashcardRoutes from "./routes/flashcard.routes.js";
 import quizRoutes from "./routes/quiz.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js"
 
 
 const app = express();
@@ -47,6 +48,8 @@ app.use("/documents", documentRoutes);
 app.use("/notes", noteRoutes);
 app.use("/flashcards", flashcardRoutes
 );
+
+app.use("/dashboard", dashboardRoutes);
 app.use("/quiz", quizRoutes);
 app.use("/chat", chatRoutes)
 

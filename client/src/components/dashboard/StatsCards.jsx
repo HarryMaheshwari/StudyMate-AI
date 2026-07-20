@@ -1,34 +1,70 @@
 import { FileText, NotebookPen, Brain, Flame } from "lucide-react";
 
+export default function StatsCards({
+  documents,
+  notes,
+  quizzes,
+  streak,
+}) {
 const stats = [
-  { title: "Documents", value: "12", sub: "+2 uploaded this week", icon: FileText },
-  { title: "AI Notes", value: "8", sub: "3 pending review", icon: NotebookPen },
-  { title: "Quizzes", value: "0", sub: "Upload a PDF to start", icon: Brain },
-  { title: "Study Streak", value: "4 Days", sub: "Keep it up!", icon: Flame },
+  {
+    title: "Documents",
+    value: documents,
+    sub:
+      documents > 0
+        ? `${documents} uploaded`
+        : "Upload your first PDF",
+    icon: FileText,
+  },
+  {
+    title: "AI Notes",
+    value: notes,
+    sub:
+      notes > 0
+        ? `${notes} generated`
+        : "Generate notes",
+    icon: NotebookPen,
+  },
+  {
+    title: "Quizzes",
+    value: quizzes,
+    sub:
+      quizzes > 0
+        ? `${quizzes} available`
+        : "Generate your first quiz",
+    icon: Brain,
+  },
+  {
+    title: "Study Streak",
+    value: `${streak} Day${streak === 1 ? "" : "s"}`,
+    sub:
+      streak > 0
+        ? "Keep it up!"
+        : "Start learning today",
+    icon: Flame,
+  },
 ];
 
-export default function StatsCards() {
   return (
-    <section className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-      {stats.map((item) => {
-        const Icon = item.icon;
-        return (
-          <div 
-            key={item.title} 
-            className="p-4 sm:p-6 bg-zinc-900 border border-white/5 rounded-2xl sm:rounded-3xl hover:border-white/10 transition-colors"
-          >
-            <p className="text-[8px] sm:text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
-              {item.title}
-            </p>
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-[#FDFBF7] mt-1 sm:mt-3">
-              {item.value}
-            </h2>
-            <p className="text-[9px] sm:text-[10px] lg:text-[11px] text-[#C9A44C] mt-1 sm:mt-2 font-mono">
-              {item.sub}
-            </p>
-          </div>
-        );
-      })}
+    <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      {stats.map((item) => (
+        <div
+          key={item.title}
+          className="rounded-3xl border border-white/5 bg-zinc-900 p-4 transition-colors hover:border-white/10 sm:p-6"
+        >
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+            {item.title}
+          </p>
+
+          <h2 className="mt-3 text-3xl font-serif font-bold text-[#FDFBF7]">
+            {item.value}
+          </h2>
+
+          <p className="mt-2 text-[11px] font-mono text-[#C9A44C]">
+            {item.sub}
+          </p>
+        </div>
+      ))}
     </section>
   );
 }

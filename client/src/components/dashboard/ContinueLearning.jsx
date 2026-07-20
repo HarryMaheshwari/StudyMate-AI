@@ -1,67 +1,94 @@
-import { FileText, ArrowRight, CheckCircle2, Clock } from "lucide-react";
+import {
+  FileText,
+  ArrowRight,
+  Clock,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function ContinueLearning() {
-  const items = [
-    { title: "Operating System", last: "Today at 2:30 PM", status: "in-progress", path: "/notes/os" },
-    { title: "Java Unit 5", last: "Yesterday", status: "completed", path: "/notes/java" }
-  ];
+export default function ContinueLearning({ document }) {
+  if (!document) {
+    return (
+      <section className="mt-8 sm:mt-12">
+        <div className="mb-4 flex items-center justify-between sm:mb-6">
+          <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-zinc-500">
+            Continue Learning
+          </h2>
+        </div>
+
+        <div className="rounded-xl border border-dashed border-white/10 bg-zinc-900 p-8 text-center">
+          <FileText
+            size={40}
+            className="mx-auto mb-4 text-zinc-600"
+            strokeWidth={1.5}
+          />
+
+          <h3 className="text-lg font-serif text-[#FDFBF7]">
+            No documents yet
+          </h3>
+
+          <p className="mt-2 text-sm text-zinc-500">
+            Upload your first PDF to start learning.
+          </p>
+
+          <Link
+            to="/documents"
+            className="mt-6 inline-flex rounded-lg bg-[#C9A44C] px-5 py-2.5 text-sm font-medium text-black transition hover:bg-[#D4B86A]"
+          >
+            Upload PDF
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-8 sm:mt-12">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="mb-4 flex items-center justify-between sm:mb-6">
         <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-zinc-500">
           Continue Learning
         </h2>
-        <Link to="/learning" className="text-xs text-[#C9A44C] hover:text-[#D4B86A] transition-colors font-mono">
+
+        <Link
+          to="/documents"
+          className="text-xs font-mono text-[#C9A44C] transition-colors hover:text-[#D4B86A]"
+        >
           View All
         </Link>
       </div>
-      
-      <div className="space-y-2 sm:space-y-3">
-        {items.map((item) => (
-          <Link
-            key={item.title}
-            to={item.path}
-            className="group flex items-center justify-between p-3 sm:p-4 bg-zinc-900 border border-white/5 rounded-xl hover:border-white/10 hover:bg-zinc-900/80 transition-all"
-          >
-            {/* Left: Icon + Content */}
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-              <div className={`flex-shrink-0 p-2 rounded-lg ${
-                item.status === 'completed' 
-                  ? 'bg-emerald-500/10 text-emerald-400' 
-                  : 'bg-[#C9A44C]/10 text-[#C9A44C]'
-              }`}>
-                {item.status === 'completed' 
-                  ? <CheckCircle2 size={16} className="sm:w-5 sm:h-5" /> 
-                  : <FileText size={16} className="sm:w-5 sm:h-5" strokeWidth={1.5} />
-                }
-              </div>
-              
-              <div className="min-w-0">
-                <h4 className="text-sm sm:text-base font-serif font-medium text-[#FDFBF7] truncate">
-                  {item.title}
-                </h4>
-                <p className="text-[10px] sm:text-[11px] font-mono text-zinc-500 flex items-center gap-1.5 mt-0.5">
-                  <Clock size={10} className="sm:w-3 sm:h-3" />
-                  {item.status === 'completed' ? "Completed" : "Last opened"} 
-                  <span className="text-zinc-400">{item.last}</span>
-                </p>
-              </div>
-            </div>
 
-            {/* Right: Action */}
-            <div className={`flex-shrink-0 flex items-center gap-1.5 text-xs font-mono font-medium transition-all ${
-              item.status === 'completed' 
-                ? 'text-zinc-500' 
-                : 'text-[#C9A44C] opacity-0 group-hover:opacity-100'
-            }`}>
-              <span>{item.status === 'completed' ? 'Review' : 'Continue'}</span>
-              <ArrowRight size={12} className={item.status === 'completed' ? '' : 'group-hover:translate-x-0.5 transition-transform'} />
-            </div>
-          </Link>
-        ))}
-      </div>
+      <Link
+        to={`/documents/${document._id}`}
+        className="group flex items-center justify-between rounded-xl border border-white/5 bg-zinc-900 p-4 transition-all hover:border-white/10 hover:bg-zinc-900/80"
+      >
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="rounded-lg bg-[#C9A44C]/10 p-2 text-[#C9A44C]">
+            <FileText size={18} strokeWidth={1.5} />
+          </div>
+
+          <div className="min-w-0">
+            <h4 className="truncate font-serif text-[#FDFBF7]">
+              {document.title}
+            </h4>
+
+            <p className="mt-1 flex items-center gap-1.5 text-[11px] font-mono text-zinc-500">
+              <Clock size={12} />
+              Last updated{" "}
+              <span className="text-zinc-400">
+                {new Date(document.updatedAt).toLocaleDateString()}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-xs font-medium font-mono text-[#C9A44C] opacity-0 transition-all group-hover:opacity-100">
+          <span>Continue</span>
+
+          <ArrowRight
+            size={12}
+            className="transition-transform group-hover:translate-x-0.5"
+          />
+        </div>
+      </Link>
     </section>
   );
 }
