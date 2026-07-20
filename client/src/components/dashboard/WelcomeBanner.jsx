@@ -1,50 +1,101 @@
 import { useState, useMemo } from "react";
-import { Sparkles, CheckCircle2, Circle } from "lucide-react";
+import {
+  Sparkles,
+  Upload,
+  NotebookPen,
+ Brain,
+  ClipboardCheck,
+  MessageSquare,
+  ArrowRight,
+} from "lucide-react";
 import useAuth from "../../hooks/useAuth";
+import { Link } from "react-router-dom";
 
-export default function WelcomeBanner() {
-  const { data: user } = useAuth();
+export default function WelcomeBanner({dashboard}) {
 
-  // 1. Stateful tasks so users can interactively check/uncheck them!
-  const [tasks, setTasks] = useState([
-    { id: 1, label: "Upload DBMS Notes", completed: true },
-    { id: 2, label: "Generate Quiz", completed: true },
-    { id: 3, label: "Review Flashcards", completed: false },
-    { id: 4, label: "Create AI Summary", completed: false },
-  ]);
+   const {
+    documents = 0,
+    notes = 0,
+    flashcards = 0,
+    quizzes = 0,
+    continueLearning,
+  } = dashboard || {};
 
-  // 2. Toggle completion handler
-  const handleToggleTask = (id) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  // 3. Performance-optimized calculations
-  const { completedCount, totalCount, progress } = useMemo(() => {
-    const completed = tasks.filter((t) => t.completed).length;
-    const total = tasks.length;
+  const nextAction = (() => {
+  if (documents === 0) {
     return {
-      completedCount: completed,
-      totalCount: total,
-      progress: total > 0 ? (completed / total) * 100 : 0,
+      title: "Upload your first PDF",
+      description:
+        "Start by uploading a document so StudyMate can generate notes, quizzes and flashcards.",
+      icon: Upload,
+      to: "/upload",
+      button: "Upload PDF",
     };
-  }, [tasks]);
+  }
 
-  // 4. Clean greeting logic
-  const greeting = useMemo(() => {
+  if (notes === 0) {
+    return {
+      title: "Generate AI Notes",
+      description:
+        "Transform your uploaded document into structured notes.",
+      icon: NotebookPen,
+      to: "/notes",
+      button: "Generate Notes",
+    };
+  }
+
+  if (flashcards === 0) {
+    return {
+      title: "Create Flashcards",
+      description:
+        "Memorize important concepts using AI flashcards.",
+      icon: Brain,
+      to: "/flashcards",
+      button: "Create Flashcards",
+    };
+  }
+
+  if (quizzes === 0) {
+    return {
+      title: "Test Your Knowledge",
+      description:
+        "Generate an AI quiz to reinforce your learning.",
+      icon: ClipboardCheck,
+      to: "/quiz",
+      button: "Start Quiz",
+    };
+  }
+
+  return {
+    title: "Continue Learning",
+    description:
+      continueLearning?.title ||
+      "Resume your latest study session.",
+    icon: MessageSquare,
+    to: continueLearning
+      ? `/documents/${continueLearning._id}`
+      : "/documents",
+    button: "Continue",
+  };
+})();
+
+ const { data: user } = useAuth();
+
+  const greeting = (() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 17) return "Good afternoon";
     return "Good evening";
-  }, []);
+  })();
 
   const userName = user?.fullName?.split(" ")[0] || "Scholar";
 
+
+  const totalResources =
+    documents + notes + flashcards + quizzes;
+
   return (
-    <section className="relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] border border-white/10 bg-zinc-950 p-6 sm:p-10 lg:p-12 shadow-2xl transition-all duration-300">
+    <section className="relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] border border-white/10 bg-zinc-950 p-6 sm:p-10 lg:p-12 shadow-2xl transition-all duration-300 text-zinc-900 tracking-tighter">
       {/* Background Glow Ambiance */}
       <div className="absolute -top-20 -right-20 w-72 sm:w-[500px] h-72 sm:h-[500px] bg-[#C9A44C]/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-20 -left-20 w-48 sm:w-[300px] h-48 sm:h-[300px] bg-zinc-800/20 rounded-full blur-[80px] pointer-events-none" />
@@ -71,62 +122,63 @@ export default function WelcomeBanner() {
 
         {/* Right Column: Interactive Tasks Card */}
         <div className="lg:col-span-5 w-full">
-          <div className="bg-[#FDFBF7] text-zinc-950 rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 shadow-2xl border border-zinc-200 transition-transform duration-300 hover:scale-[1.01]">
-            
-            {/* Goal Header */}
-            <div className="flex items-center justify-between mb-5">
-              <div className="space-y-0.5">
-                <h3 className="font-serif text-base font-bold text-zinc-900">Today's Goal</h3>
-                <p className="text-xs text-zinc-500">Keep up the great momentum!</p>
-              </div>
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-600 bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200">
-                {completedCount}/{totalCount} Done
-              </span>
-            </div>
+         <div className="lg:col-span-5 w-full">
+  <div className="lg:col-span-5">
+  <div className="rounded-[2rem] border border-zinc-200 bg-[#FDFBF7] p-8 shadow-2xl">
 
-            {/* Task Checklist Items */}
-            <div className="space-y-2.5 mb-6">
-              {tasks.map((task) => (
-                <button
-                  key={task.id}
-                  onClick={() => handleToggleTask(task.id)}
-                  className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left text-xs sm:text-sm font-medium transition-all duration-200 border outline-none focus-visible:ring-2 focus-visible:ring-[#C9A44C]/50 ${
-                    task.completed
-                      ? "bg-zinc-50 border-zinc-100 text-zinc-400"
-                      : "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50/50"
-                  }`}
-                >
-                  <div className="flex-shrink-0 transition-transform duration-150 active:scale-95">
-                    {task.completed ? (
-                      <CheckCircle2 size={16} className="text-[#C9A44C] fill-[#C9A44C]/10" />
-                    ) : (
-                      <Circle size={16} className="text-zinc-300 hover:text-zinc-400" />
-                    )}
-                  </div>
-                  <span className={`transition-all duration-200 select-none ${
-                    task.completed ? "line-through decoration-[#C9A44C]/50 text-zinc-400" : ""
-                  }`}>
-                    {task.label}
-                  </span>
-                </button>
-              ))}
-            </div>
+    <div className="flex items-center gap-3">
+      <div className="rounded-xl bg-[#C9A44C]/10 p-3">
+        <nextAction.icon
+          size={22}
+          className="text-[#C9A44C]"
+        />
+      </div>
 
-            {/* Progress Meter */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
-                <span>Progress</span>
-                <span className="text-zinc-900">{Math.round(progress)}%</span>
-              </div>
-              <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden border border-zinc-200">
-                <div
-                  className="h-full bg-[#C9A44C] rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(201,164,76,0.3)]"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
+      <div>
+        <p className="text-xs font-mono uppercase tracking-[0.2em] text-zinc-500">
+          AI Recommendation
+        </p>
 
-          </div>
+        <h3 className="mt-1 font-serif text-xl font-semibold">
+          {nextAction.title}
+        </h3>
+      </div>
+    </div>
+
+    <p className="mt-6 leading-relaxed text-zinc-600">
+      {nextAction.description}
+    </p>
+
+    <Link
+      to={nextAction.to}
+      className="mt-8 flex items-center justify-between rounded-xl bg-zinc-900 px-5 py-4 text-white transition hover:bg-black"
+    >
+      <span>{nextAction.button}</span>
+
+      <ArrowRight size={18} />
+    </Link>
+
+    {continueLearning && (
+      <div className="mt-8 border-t border-zinc-200 pt-6">
+        <p className="text-xs font-mono uppercase tracking-[0.2em] text-zinc-500">
+          Last Studied
+        </p>
+
+        <h4 className="mt-2 font-medium">
+          {continueLearning.title}
+        </h4>
+
+        <p className="mt-1 text-sm text-zinc-500">
+          Updated{" "}
+          {new Date(
+            continueLearning.updatedAt
+          ).toLocaleDateString()}
+        </p>
+      </div>
+    )}
+  </div>
+</div>
+</div>
         </div>
 
       </div>

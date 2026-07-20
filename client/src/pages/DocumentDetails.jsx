@@ -1,5 +1,20 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { FileText, Brain, MessageSquare, BookOpen, Sparkles, Loader2, ArrowLeft, ChevronRight, Clock, CheckCircle, Zap, Layers, Target, TrendingUp } from "lucide-react";
+import {
+  FileText,
+  Brain,
+  MessageSquare,
+  BookOpen,
+  Sparkles,
+  Loader2,
+  ArrowLeft,
+  ChevronRight,
+  Clock,
+  CheckCircle,
+  Zap,
+  Layers,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import useDocument from "../hooks/useDocument";
 import useGenerateNotes from "../hooks/useGenerateNotes";
@@ -8,6 +23,8 @@ import useFlashcards from "../hooks/useFlashcards";
 import useGenerateFlashcards from "../hooks/useGenerateFlashcards";
 import useQuiz from "../hooks/useQuiz";
 import useGenerateQuiz from "../hooks/useGenerateQuiz";
+import { useState } from "react";
+import { useNotesProgress } from "../hooks/useNotesProgress";
 
 export default function DocumentDetails() {
   const { id } = useParams();
@@ -16,6 +33,15 @@ export default function DocumentDetails() {
   const { data: document, isLoading } = useDocument(id);
   const { data: note, isSuccess: notesExist } = useNotes(id);
   const generateNotesMutation = useGenerateNotes();
+
+  const [trackNotesProgress, setTrackNotesProgress] = useState(false);
+
+  // ✅ Renamed progress to notesProgress to avoid conflict with page progress
+  const {
+    progress: notesProgress,
+    stage,
+  } = useNotesProgress(id, trackNotesProgress);
+
   const { isSuccess: flashcardsExist } = useFlashcards(id);
   const generateFlashcardsMutation = useGenerateFlashcards();
   const { isSuccess: quizExists } = useQuiz(id);
@@ -28,24 +54,29 @@ export default function DocumentDetails() {
     callback();
   };
 
-  if (isLoading) return (
-    <DashboardLayout>
-      <div className="flex h-screen items-center justify-center bg-zinc-900">
-        <Loader2 className="animate-spin text-zinc-500" size={28} />
-      </div>
-    </DashboardLayout>
-  );
+  if (isLoading)
+    return (
+      <DashboardLayout>
+        <div className="flex h-screen items-center justify-center bg-zinc-900">
+          <Loader2 className="animate-spin text-zinc-500" size={28} />
+        </div>
+      </DashboardLayout>
+    );
 
   const getStatusColor = (status) => {
-    if (!status) return 'text-zinc-400 bg-zinc-800';
+    if (!status) return "text-zinc-400 bg-zinc-800";
     const s = status.toLowerCase();
-    if (s === 'ready' || s === 'completed') return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-    if (s === 'processing') return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-    return 'text-zinc-400 bg-zinc-800';
+    if (s === "ready" || s === "completed")
+      return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+    if (s === "processing")
+      return "text-amber-400 bg-amber-500/10 border-amber-500/20";
+    return "text-zinc-400 bg-zinc-800";
   };
 
   // Calculate useful stats
-  const totalItems = (notesExist ? 1 : 0) + (flashcardsExist ? 1 : 0) + (quizExists ? 1 : 0);
+  const totalItems =
+    (notesExist ? 1 : 0) + (flashcardsExist ? 1 : 0) + (quizExists ? 1 : 0);
+  // ✅ This is the page's overall study progress - leave as is
   const progress = Math.round((totalItems / 3) * 100);
 
   return (
@@ -55,8 +86,8 @@ export default function DocumentDetails() {
         <div className="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-none md:rounded-t-4xl">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center gap-3 min-w-0">
-              <button 
-                onClick={() => handleAction(() => navigate('/documents'))} 
+              <button
+                onClick={() => handleAction(() => navigate("/documents"))}
                 className="p-2 -ml-2 hover:bg-zinc-800 active:bg-zinc-700 rounded-full transition-colors duration-200"
               >
                 <ArrowLeft size={20} className="text-zinc-400" />
@@ -67,7 +98,9 @@ export default function DocumentDetails() {
                 </h1>
               </div>
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(document?.status)}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(document?.status)}`}
+            >
               {document?.status || "Draft"}
             </span>
           </div>
@@ -75,7 +108,6 @@ export default function DocumentDetails() {
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-          
           {/* Stats - Useful ones */}
           <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10">
             <div className="bg-[#121212] border border-[#1f1f1f] rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:border-zinc-700 transition-all duration-300">
@@ -85,10 +117,14 @@ export default function DocumentDetails() {
                   Study Materials
                 </p>
               </div>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{totalItems}/3</p>
-              <p className="text-[10px] text-zinc-500 mt-0.5">Notes • Flashcards • Quiz</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+                {totalItems}/3
+              </p>
+              <p className="text-[10px] text-zinc-500 mt-0.5">
+                Notes • Flashcards • Quiz
+              </p>
             </div>
-            
+
             <div className="bg-[#121212] border border-[#1f1f1f] rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:border-zinc-700 transition-all duration-300">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp size={14} className="text-emerald-400" />
@@ -96,9 +132,11 @@ export default function DocumentDetails() {
                   Progress
                 </p>
               </div>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{progress}%</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+                {progress}%
+              </p>
               <div className="w-full h-1.5 bg-zinc-800 rounded-full mt-2 overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-[#C9A44C] rounded-full transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 />
@@ -116,7 +154,9 @@ export default function DocumentDetails() {
                 {document?.status || "Draft"}
               </p>
               <p className="text-[10px] text-zinc-500 mt-0.5">
-                {document?.createdAt ? new Date(document.createdAt).toLocaleDateString() : "Today"}
+                {document?.createdAt
+                  ? new Date(document.createdAt).toLocaleDateString()
+                  : "Today"}
               </p>
             </div>
           </div>
@@ -127,42 +167,64 @@ export default function DocumentDetails() {
               Quick Actions
             </h2>
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <ActionCard 
+              <ActionCard
                 icon={<BookOpen size={18} />}
                 title="Study Notes"
                 description="Generate comprehensive notes"
                 exists={notesExist}
                 isPending={generateNotesMutation.isPending}
-                onGenerate={() => handleAction(() => generateNotesMutation.mutate(id))}
-                onView={() => handleAction(() => navigate(`/documents/${id}/notes`))}
+               onGenerate={() =>
+  handleAction(() => {
+    setTrackNotesProgress(true);
+
+    generateNotesMutation.mutate(id, {
+      onSettled: () => {
+        setTrackNotesProgress(false);
+      },
+    });
+  })
+}
+                onView={() =>
+                  handleAction(() => navigate(`/documents/${id}/notes`))
+                }
                 color="emerald"
               />
-              <ActionCard 
+              <ActionCard
                 icon={<Brain size={18} />}
                 title="Flashcards"
                 description="Create study cards"
                 exists={flashcardsExist}
                 isPending={generateFlashcardsMutation.isPending}
-                onGenerate={() => handleAction(() => generateFlashcardsMutation.mutate(id))}
-                onView={() => handleAction(() => navigate(`/documents/${id}/flashcards`))}
+                onGenerate={() =>
+                  handleAction(() => generateFlashcardsMutation.mutate(id))
+                }
+                onView={() =>
+                  handleAction(() => navigate(`/documents/${id}/flashcards`))
+                }
                 color="purple"
               />
-              <ActionCard 
+              <ActionCard
                 icon={<Sparkles size={18} />}
                 title="AI Quiz"
                 description="Test your knowledge"
                 exists={quizExists}
                 isPending={generateQuizMutation.isPending}
-                onGenerate={() => handleAction(() => generateQuizMutation.mutate(id))}
-                onView={() => handleAction(() => navigate(`/documents/${id}/quiz`))}
+                onGenerate={() =>
+                  handleAction(() => generateQuizMutation.mutate(id))
+                }
+                onView={() =>
+                  handleAction(() => navigate(`/documents/${id}/quiz`))
+                }
                 color="gold"
               />
-              <ActionCard 
+              <ActionCard
                 icon={<MessageSquare size={18} />}
                 title="Chat with PDF"
                 description="Ask questions about content"
                 isChat
-                onView={() => handleAction(() => navigate(`/documents/${id}/chat`))}
+                onView={() =>
+                  handleAction(() => navigate(`/documents/${id}/chat`))
+                }
                 color="blue"
               />
             </div>
@@ -177,27 +239,31 @@ export default function DocumentDetails() {
               <span className="text-[10px] text-zinc-600">Last 7 days</span>
             </div>
             <div className="space-y-3">
-              <ActivityItem 
+              <ActivityItem
                 label="Document uploaded"
-                date={document?.createdAt ? new Date(document.createdAt).toLocaleDateString() : "Today"}
+                date={
+                  document?.createdAt
+                    ? new Date(document.createdAt).toLocaleDateString()
+                    : "Today"
+                }
                 isComplete={true}
               />
               {notesExist && (
-                <ActivityItem 
+                <ActivityItem
                   label="Study notes generated"
                   date="Today"
                   isComplete={true}
                 />
               )}
               {flashcardsExist && (
-                <ActivityItem 
+                <ActivityItem
                   label="Flashcards created"
                   date="Today"
                   isComplete={true}
                 />
               )}
               {quizExists && (
-                <ActivityItem 
+                <ActivityItem
                   label="AI Quiz generated"
                   date="Today"
                   isComplete={true}
@@ -206,36 +272,90 @@ export default function DocumentDetails() {
               {!notesExist && !flashcardsExist && !quizExists && (
                 <div className="text-center py-3">
                   <p className="text-zinc-500 text-sm">No activity yet</p>
-                  <p className="text-zinc-600 text-xs mt-1">Generate notes, flashcards, or quiz to get started</p>
+                  <p className="text-zinc-600 text-xs mt-1">
+                    Generate notes, flashcards, or quiz to get started
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {trackNotesProgress && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 w-[420px]">
+            <h2 className="text-xl font-semibold text-white">
+              Generating Notes
+            </h2>
+
+            <p className="text-zinc-400 mt-2 capitalize">
+              {stage}
+            </p>
+
+            <div className="w-full h-3 bg-zinc-800 rounded-full mt-6 overflow-hidden">
+              <div
+                className="h-full bg-[#C9A44C] transition-all duration-300"
+                style={{
+                  // ✅ Using notesProgress for the generation progress bar
+                  width: `${notesProgress}%`,
+                }}
+              />
+            </div>
+
+            <div className="flex justify-between mt-3">
+              <span className="text-zinc-500 text-sm">
+                {/* ✅ Using notesProgress for the percentage display */}
+                {notesProgress}%
+              </span>
+
+              <Loader2
+                className="animate-spin text-[#C9A44C]"
+                size={18}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
 
-function ActionCard({ icon, title, description, exists, isPending, onGenerate, onView, isChat, color }) {
+function ActionCard({
+  icon,
+  title,
+  description,
+  exists,
+  isPending,
+  onGenerate,
+  onView,
+  isChat,
+  color,
+}) {
   const colors = {
-    emerald: 'hover:border-emerald-500/30',
-    purple: 'hover:border-purple-500/30',
-    gold: 'hover:border-[#C9A44C]/30',
-    blue: 'hover:border-blue-500/30'
+    emerald: "hover:border-emerald-500/30",
+    purple: "hover:border-purple-500/30",
+    gold: "hover:border-[#C9A44C]/30",
+    blue: "hover:border-blue-500/30",
   };
 
-  const status = isChat ? 'Available' : (exists ? 'Ready' : 'Not Generated');
-  const statusColor = exists ? 'text-emerald-400 bg-emerald-500/10' : (isChat ? 'text-blue-400 bg-blue-500/10' : 'text-zinc-500 bg-zinc-800');
+  const status = isChat ? "Available" : exists ? "Ready" : "Not Generated";
+  const statusColor = exists
+    ? "text-emerald-400 bg-emerald-500/10"
+    : isChat
+      ? "text-blue-400 bg-blue-500/10"
+      : "text-zinc-500 bg-zinc-800";
 
   return (
-    <div className={`bg-[#121212] border border-[#1f1f1f] rounded-xl sm:rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-zinc-700 ${colors[color]} active:scale-[0.98]`}>
+    <div
+      className={`bg-[#121212] border border-[#1f1f1f] rounded-xl sm:rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-zinc-700 ${colors[color]} active:scale-[0.98]`}
+    >
       <div className="flex flex-col h-full">
         <div className="flex items-start justify-between mb-3">
-          <div className="text-zinc-500">
-            {icon}
-          </div>
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}`}>
+          <div className="text-zinc-500">{icon}</div>
+          <span
+            className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}`}
+          >
             {status}
           </span>
         </div>
@@ -244,22 +364,21 @@ function ActionCard({ icon, title, description, exists, isPending, onGenerate, o
           <h3 className="text-sm sm:text-base font-semibold text-white mb-0.5">
             {title}
           </h3>
-          <p className="text-xs text-zinc-500 mb-3 sm:mb-4">
-            {description}
-          </p>
+          <p className="text-xs text-zinc-500 mb-3 sm:mb-4">{description}</p>
         </div>
 
-        <button 
+        <button
           onClick={isChat || exists ? onView : onGenerate}
           disabled={isPending}
           className={`
             w-full py-2.5 rounded-xl text-xs sm:text-sm font-medium 
             transition-all duration-200 flex items-center justify-center gap-2
-            ${isChat || exists 
-              ? 'bg-[#1f1f1f] hover:bg-[#2a2a2a] text-white' 
-              : 'bg-[#C9A44C] hover:bg-[#D4B45C] text-[#09090B]'
+            ${
+              isChat || exists
+                ? "bg-[#1f1f1f] hover:bg-[#2a2a2a] text-white"
+                : "bg-[#C9A44C] hover:bg-[#D4B45C] text-[#09090B]"
             }
-            ${isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+            ${isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
             active:scale-[0.97]
           `}
         >
@@ -270,8 +389,11 @@ function ActionCard({ icon, title, description, exists, isPending, onGenerate, o
             </>
           ) : (
             <>
-              <span>{isChat || exists ? 'View' : 'Generate'}</span>
-              <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+              <span>{isChat || exists ? "View" : "Generate"}</span>
+              <ChevronRight
+                size={14}
+                className="transition-transform group-hover:translate-x-0.5"
+              />
             </>
           )}
         </button>

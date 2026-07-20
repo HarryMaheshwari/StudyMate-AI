@@ -6,6 +6,7 @@ import {
   generateDocumentNotes,
   getNotes,
   deleteNotes,
+  streamNoteProgress,
 } from "../controllers/note.controller.js";
 
 const router = Router();
@@ -20,6 +21,12 @@ router.get(
   "/:documentId",
   verifyJWT,
   getNotes
+);
+
+router.get(
+  "/:documentId/progress",
+  verifyJWT,
+  streamNoteProgress
 );
 
 router.delete(

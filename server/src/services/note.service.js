@@ -9,6 +9,10 @@ import {
 
 import { chunkText } from "../utils/chunkText.js";
 import { processChunks } from "../utils/processChunks.js";
+import {
+  setProgress,
+  clearProgress,
+} from "../utils/progressManager.js";
 
 import {
   GROQ_MODEL,
@@ -39,31 +43,40 @@ export const generateNotes = async (
   });
 
   if (existingNote) {
+    // If note already exists, show 100% progress immediately
+    setProgress(documentId, 100, "completed");
+
+    // Clean up progress after 3 seconds
+    setTimeout(() => {
+      clearProgress(documentId);
+    }, 3000);
+
     return existingNote;
   }
 
-  console.log(document.extractedText);
-  console.log(document.extractedText.length);
+  try {
+    // Set initial progress: Preparing
+    setProgress(documentId, 10, "preparing");
 
-  // Split extracted text into chunks
-  const chunks = chunkText(
-    document.extractedText,
-    MAX_CHUNK_SIZE
-  );
+    // Split extracted text into chunks
+    const chunks = chunkText(
+      document.extractedText,
+      MAX_CHUNK_SIZE
+    );
 
-  console.log(chunks);
+    // Set progress: Processing started
+    setProgress(documentId, 20, "processing");
 
-  // Generate notes for chunks concurrently
-  const chunkNotes = await processChunks(
-    chunks,
-    async (chunk) => {
-      const response =
-        await groq.chat.completions.create({
-          model: GROQ_MODEL,
-          messages: [
-            {
-              role: "user",
-              content: `
+    const chunkNotes = await processChunks(
+      chunks,
+      async (chunk) => {
+        const response =
+          await groq.chat.completions.create({
+            model: GROQ_MODEL,
+            messages: [
+              {
+                role: "user",
+                content: `
 ${NOTES_PROMPT}
 
 ======================
@@ -76,23 +89,37 @@ ${chunk}
 END OF STUDY MATERIAL
 ======================
 `,
-            },
-          ],
-        });
+              },
+            ],
+          });
 
-      return response.choices[0].message.content;
-    },
-    CHUNK_CONCURRENCY
-  );
+        return response.choices[0].message.content;
+      },
+      CHUNK_CONCURRENCY,
 
-  // Merge all generated notes into one
-  const mergedResponse =
-    await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        {
-          role: "user",
-          content: `
+      (completed, total) => {
+        const progress =
+          20 + Math.round((completed / total) * 70);
+
+        setProgress(
+          documentId,
+          progress,
+          "processing"
+        );
+      }
+    );
+
+    // Set progress to merging BEFORE the merge operation
+    setProgress(documentId, 95, "merging");
+
+    // Merge all generated notes into one
+    const mergedResponse =
+      await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: `
 ${MERGE_NOTES_PROMPT}
 
 ======================
@@ -105,26 +132,33 @@ ${chunkNotes.join("\n\n")}
 END OF CHUNK NOTES
 ======================
 `,
-        },
-      ],
+          },
+        ],
+      });
+
+    // Save final note
+    const note = await Note.create({
+      owner: userId,
+      document: documentId,
+      title: document.title,
+      content:
+        mergedResponse.choices[0].message.content,
     });
 
-  console.log("Chunk Notes:");
-  console.log(chunkNotes);
+    // Set progress: Completed
+    setProgress(documentId, 100, "completed");
 
-  console.log("Merged Response:");
-  console.log(mergedResponse);
-
-  // Save final note
-  const note = await Note.create({
-    owner: userId,
-    document: documentId,
-    title: document.title,
-    content:
-      mergedResponse.choices[0].message.content,
-  });
-
-  return note;
+    return note;
+  } catch (error) {
+    // If there's an error, set progress to failed state
+    setProgress(documentId, 0, "failed");
+    throw error;
+  } finally {
+    // Clean up progress after 5 seconds, regardless of success or failure
+    setTimeout(() => {
+      clearProgress(documentId);
+    }, 5000);
+  }
 };
 
 export const getDocumentNote = async (

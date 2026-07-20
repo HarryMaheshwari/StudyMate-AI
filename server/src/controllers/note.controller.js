@@ -6,6 +6,7 @@ import {
   getDocumentNote,
   deleteNote,
 } from "../services/note.service.js";
+import { getProgress } from "../utils/progressManager.js";
 
 export const generateDocumentNotes =
   asyncHandler(async (req, res) => {
@@ -54,3 +55,39 @@ export const deleteNotes =
       )
     );
   });
+
+
+export const streamNoteProgress = (req, res) => {
+  const { documentId } = req.params;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  // Send initial state immediately
+  res.write(
+    `data: ${JSON.stringify(
+      getProgress(documentId)
+    )}\n\n`
+  );
+
+  const interval = setInterval(() => {
+    const progress = getProgress(documentId);
+
+    res.write(
+      `data: ${JSON.stringify(progress)}\n\n`
+    );
+
+    if (
+      progress.stage === "completed" ||
+      progress.stage === "failed"
+    ) {
+      clearInterval(interval);
+      res.end();
+    }
+  }, 300);
+
+  req.on("close", () => {
+    clearInterval(interval);
+  });
+};
